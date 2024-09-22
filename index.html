@@ -203,7 +203,7 @@
                 totalCarbonFootprint += carbonFootprint;
                 updateBalance();
                 updateCarbonFootprint();
-                addToHistory(`- ₩${expense} - ${expenseMemo} (${date}), 탄소 배출: ${carbonFootprint} kg CO2`, 'expense');
+                addToHistory(`- ₩${expense} - ${expenseMemo} (${date}), 탄소 배출: ${carbonFootprint} g CO2`, 'expense');
 
                 // 날짜별 기록 추가
                 updateChartData(date, 0, expense, carbonFootprint);
