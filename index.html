@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>용돈 기입장 & 탄소 발자국 계산</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .form-box {
+            width: 45%;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        input[type="number"], input[type="text"], input[type="date"] {
+            width: 95%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .balance, .carbon-footprint {
+            font-size: 1.5em;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .history {
+            margin-top: 20px;
+        }
+        .history ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .history li {
+            background: #f1f1f1;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .history .allowance {
+            color: green;
+        }
+        .history .expense {
+            color: red;
+        }
+        .chart-container {
+            margin-top: 40px;
+            text-align: center;
+        }
+        canvas {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>용돈 기입장 & 탄소 발자국 계산</h1>
+
+    <div class="flex-container">
+        <!-- 용돈 입력 부분 -->
+        <div class="form-box">
+            <h2>용돈 입력</h2>
+            <label for="date">날짜:</label>
+            <input type="date" id="date">
+
+            <label for="allowance">용돈 받기 (₩):</label>
+            <input type="number" id="allowance" placeholder="받은 용돈을 입력하세요"><br>
+            
+            <label for="allowanceMemo">용돈 메모:</label>
+            <input type="text" id="allowanceMemo" placeholder="예: 생일 용돈"><br>
+
+            <label for="carbonFootprint">탄소 발자국 (kg CO2):</label>
+            <input type="number" id="carbonFootprintfake" placeholder="0" disabled><br>
+
+            <button onclick="addAllowance()">용돈 추가</button>
+        </div>
+
+        <!-- 지출 입력 부분 -->
+        <div class="form-box">
+            <h2>지출 입력</h2>
+            <label for="expenseDate">날짜:</label>
+            <input type="date" id="expenseDate">
+
+            <label for="expense">지출 (₩):</label>
+            <input type="number" id="expense" placeholder="쓴 돈을 입력하세요"><br>
+
+            <label for="expenseMemo">지출 메모:</label>
+            <input type="text" id="expenseMemo" placeholder="예: 영화 티켓"><br>
+
+            <label for="carbonFootprint">탄소 발자국 (kg CO2):</label>
+            <input type="number" id="carbonFootprint" placeholder="탄소 배출량을 입력하세요"><br>
+
+            <button onclick="addExpense()">지출 추가</button>
+        </div>
+    </div>
+
+    <div class="balance">
+        잔고: ₩<span id="balance">0</span>
+    </div>
+    <div class="carbon-footprint">
+        총 탄소 발자국: <span id="totalCarbonFootprint">0</span> kg CO2
+    </div>
+
+    <div class="history">
+        <h2>내역</h2>
+        <ul id="historyList">
+            <!-- 기록이 여기에 추가됩니다 -->
+        </ul>
+    </div>
+
+    <div class="chart-container">
+        <h2>날짜별 용돈, 지출, 탄소 발자국</h2>
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let totalBalance = 0;
+    let totalCarbonFootprint = 0;
+    const historyList = document.getElementById('historyList');
+    const balanceElem = document.getElementById('balance');
+    const carbonFootprintElem = document.getElementById('totalCarbonFootprint');
+    
+    // 날짜별 데이터 저장용
+    let dates = [];
+    let allowances = [];
+    let expenses = [];
+    let carbonFootprints = [];
+
+    // Chart.js 차트 인스턴스
+    let myChart;
+
+    function addAllowance() {
+        const date = document.getElementById('date').value;
+        const allowance = parseInt(document.getElementById('allowance').value);
+        const allowanceMemo = document.getElementById('allowanceMemo').value;
+        
+        // 탄소 발자국은 용돈 입력에서 사용하지 않으므로 제거
+        if (!isNaN(allowance) && allowance > 0 && date) {
+            totalBalance += allowance;
+            updateBalance();
+            addToHistory(`+ ₩${allowance} - ${allowanceMemo} (${date})`, 'allowance');
+
+            // 날짜별 기록 추가 (탄소 발자국 0으로 처리)
+            updateChartData(date, allowance, 0, 0);
+        } else {
+            alert('유효한 금액과 날짜를 입력하세요.');
+        }
+        clearInputs();
+    }
+
+    function addExpense() {
+        const date = document.getElementById('expenseDate').value;
+        const expense = parseInt(document.getElementById('expense').value);
+        const expenseMemo = document.getElementById('expenseMemo').value;
+        let carbonFootprint = parseInt(document.getElementById('carbonFootprint').value);
+
+        // 탄소 발자국이 입력되지 않았을 때는 0으로 처리
+        if (isNaN(carbonFootprint)) {
+            carbonFootprint = 0;
+        }
+
+        if (!isNaN(expense) && expense > 0 && date) {
+            if (expense <= totalBalance) {
+                totalBalance -= expense;
+                totalCarbonFootprint += carbonFootprint;
+                updateBalance();
+                updateCarbonFootprint();
+                addToHistory(`- ₩${expense} - ${expenseMemo} (${date}), 탄소 배출: ${carbonFootprint} kg CO2`, 'expense');
+
+                // 날짜별 기록 추가
+                updateChartData(date, 0, expense, carbonFootprint);
+            } else {
+                alert('잔고가 부족합니다.');
+            }
+        } else {
+            alert('유효한 금액과 날짜를 입력하세요.');
+        }
+        clearInputs();
+    }
+
+    function updateBalance() {
+        balanceElem.innerText = totalBalance;
+    }
+
+    function updateCarbonFootprint() {
+        carbonFootprintElem.innerText = totalCarbonFootprint;
+    }
+
+    function addToHistory(text, type) {
+        const li = document.createElement('li');
+        li.classList.add(type);
+        li.textContent = text;
+        historyList.appendChild(li);
+    }
+
+    function clearInputs() {
+        document.getElementById('allowance').value = '';
+        document.getElementById('allowanceMemo').value = '';
+        document.getElementById('expense').value = '';
+        document.getElementById('expenseMemo').value = '';
+        document.getElementById('carbonFootprint').value = '';
+        document.getElementById('date').value = '';
+        document.getElementById('expenseDate').value = '';
+    }
+
+    // 차트 데이터 업데이트
+    function updateChartData(date, allowance, expense, carbonFootprint) {
+        const dateIndex = dates.indexOf(date);
+        if (dateIndex !== -1) {
+            allowances[dateIndex] += allowance;
+            expenses[dateIndex] += expense;
+            carbonFootprints[dateIndex] += carbonFootprint;
+        } else {
+            dates.push(date);
+            allowances.push(allowance);
+            expenses.push(expense);
+            carbonFootprints.push(carbonFootprint);
+        }
+        renderChart();
+    }
+
+    // 차트 렌더링
+    function renderChart() {
+        if (!myChart) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: '용돈 (₩)',
+                            data: allowances,
+                            borderColor: 'green',
+                            fill: false
+                        },
+                        {
+                            label: '지출 (₩)',
+                            data: expenses,
+                            borderColor: 'red',
+                            fill: false
+                        },
+                        {
+                            label: '탄소 발자국 (kg CO2)',
+                            data: carbonFootprints,
+                            borderColor: 'blue',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '날짜'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '금액 / 탄소 배출량'
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            myChart.data.labels = dates;
+            myChart.data.datasets[0].data = allowances;
+            myChart.data.datasets[1].data = expenses;
+            myChart.data.datasets[2].data = carbonFootprints;
+            myChart.update();
+        }
+    }
+</script>
+
+</body>
+</html>
