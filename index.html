@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인자탐 용돈 기입장><캬</title>
+
+    <!-- Google Font: Jeju Myeongjo -->
+    <link href="https://fonts.googleapis.com/css2?family=Jeju+Myeongjo&display=swap" rel="stylesheet">
+
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Jeju Myeongjo', serif;
             background-color: #f4f4f9;
             margin: 0;
             padding: 20px;
@@ -35,26 +39,31 @@
             border-radius: 8px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
-        input[type="number"], input[type="text"], input[type="date"] {
+        input[type="number"], input[type="text"], input[type="date"], select {
             width: 95%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-family: 'Jeju Myeongjo', serif;
+        }
+        ::placeholder {
+            font-family: 'Jeju Myeongjo', serif;
         }
         button {
             padding: 10px 20px;
             border: none;
-            background-color: #28a745;
+            background-color: #b3c5f9;
             color: white;
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
+            font-family: 'Jeju Myeongjo', serif;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #8da4ea;
         }
-        .balance, .carbon-footprint {
+        .balance, .carbon-footprint, .monthly-stats {
             font-size: 1.5em;
             margin-top: 20px;
             text-align: center;
@@ -73,10 +82,10 @@
             border-radius: 4px;
         }
         .history .allowance {
-            color: green;
+            color: #4169e1   ;
         }
         .history .expense {
-            color: red;
+            color: cadetblue;
         }
         .chart-container {
             margin-top: 40px;
@@ -104,9 +113,6 @@
             
             <label for="allowanceMemo">용돈 메모:</label>
             <input type="text" id="allowanceMemo" placeholder="예: 생일 용돈"><br>
-
-            <label for="carbonFootprint">탄소 발자국 (g CO2):</label>
-            <input type="number" id="carbonFootprintfake" placeholder="0" disabled><br>
 
             <button onclick="addAllowance()">용돈 추가</button>
         </div>
@@ -144,16 +150,45 @@
         </ul>
     </div>
 
+    <div class="monthly-stats">
+        <h2>월별 통계</h2>
+        <p>이달의 총 수입: ₩<span id="monthlyIncome">0</span></p>
+        <p>이달의 총 지출: ₩<span id="monthlyExpense">0</span></p>
+        <p>이달의 탄소 발자국: <span id="monthlyCarbonFootprint">0</span> g CO2</p>
+        <p>고등학생 평균 지출: ₩137,000</p>
+        <p>내 지출 vs 고등학생 평균 지출: ₩<span id="expenseComparison">0</span></p>
+    </div>
+
     <div class="chart-container">
         <h2>날짜별 용돈, 지출, 탄소 발자국</h2>
         <canvas id="myChart"></canvas>
     </div>
+
+    <div class="form-box">
+        <h2>탄소 발자국 계산기</h2>
+        <select id="activity">
+            <option value="email">이메일 1통 (4g CO2)</option>
+            <option value="call">전화 1분 (3.6g CO2)</option>
+            <option value="data">데이터 1MB 전송 (3.6g CO2)</option>
+            <option value="instagram">인스타그램 1분 (1.05g CO2)</option>
+            <option value="facebook">페이스북 1분 (0.79g CO2)</option>
+            <option value="youtube">유튜브 1분 (0.46g CO2)</option>
+        </select>
+        <input type="number" id="activityTime" placeholder="시간 (분 또는 MB)">
+        <button onclick="calculateActivityFootprint()">탄소 발자국 계산</button>
+        <p>탄소 발자국: <span id="activityCarbonFootprint">0</span> g CO2</p>
+    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     let totalBalance = 0;
     let totalCarbonFootprint = 0;
+    let monthlyIncome = 0;
+    let monthlyExpense = 0;
+    let monthlyCarbonFootprint = 0;
+    
     const historyList = document.getElementById('historyList');
     const balanceElem = document.getElementById('balance');
     const carbonFootprintElem = document.getElementById('totalCarbonFootprint');
@@ -171,15 +206,16 @@
         const date = document.getElementById('date').value;
         const allowance = parseInt(document.getElementById('allowance').value);
         const allowanceMemo = document.getElementById('allowanceMemo').value;
-        
-        // 탄소 발자국은 용돈 입력에서 사용하지 않으므로 제거
+
         if (!isNaN(allowance) && allowance > 0 && date) {
             totalBalance += allowance;
+            monthlyIncome += allowance;
             updateBalance();
             addToHistory(`+ ₩${allowance} - ${allowanceMemo} (${date})`, 'allowance');
 
             // 날짜별 기록 추가 (탄소 발자국 0으로 처리)
             updateChartData(date, allowance, 0, 0);
+            updateMonthlyStats();
         } else {
             alert('유효한 금액과 날짜를 입력하세요.');
         }
@@ -192,7 +228,6 @@
         const expenseMemo = document.getElementById('expenseMemo').value;
         let carbonFootprint = parseInt(document.getElementById('carbonFootprint').value);
 
-        // 탄소 발자국이 입력되지 않았을 때는 0으로 처리
         if (isNaN(carbonFootprint)) {
             carbonFootprint = 0;
         }
@@ -201,12 +236,15 @@
             if (expense <= totalBalance) {
                 totalBalance -= expense;
                 totalCarbonFootprint += carbonFootprint;
+                monthlyExpense += expense;
+                monthlyCarbonFootprint += carbonFootprint;
                 updateBalance();
                 updateCarbonFootprint();
                 addToHistory(`- ₩${expense} - ${expenseMemo} (${date}), 탄소 배출: ${carbonFootprint} g CO2`, 'expense');
 
                 // 날짜별 기록 추가
                 updateChartData(date, 0, expense, carbonFootprint);
+                updateMonthlyStats();
             } else {
                 alert('잔고가 부족합니다.');
             }
@@ -241,7 +279,6 @@
         document.getElementById('expenseDate').value = '';
     }
 
-    // 차트 데이터 업데이트
     function updateChartData(date, allowance, expense, carbonFootprint) {
         const dateIndex = dates.indexOf(date);
         if (dateIndex !== -1) {
@@ -257,7 +294,6 @@
         renderChart();
     }
 
-    // 차트 렌더링
     function renderChart() {
         if (!myChart) {
             const ctx = document.getElementById('myChart').getContext('2d');
@@ -269,19 +305,19 @@
                         {
                             label: '용돈 (₩)',
                             data: allowances,
-                            borderColor: 'green',
+                            borderColor: 'royalblue',
                             fill: false
                         },
                         {
                             label: '지출 (₩)',
                             data: expenses,
-                            borderColor: 'red',
+                            borderColor: 'cadetblue',
                             fill: false
                         },
                         {
                             label: '탄소 발자국 (kg CO2)',
                             data: carbonFootprints,
-                            borderColor: 'blue',
+                            borderColor: 'lightsteelblue',
                             fill: false
                         }
                     ]
@@ -311,6 +347,45 @@
             myChart.data.datasets[2].data = carbonFootprints;
             myChart.update();
         }
+    }
+
+    function updateMonthlyStats() {
+        document.getElementById('monthlyIncome').innerText = monthlyIncome;
+        document.getElementById('monthlyExpense').innerText = monthlyExpense;
+        document.getElementById('monthlyCarbonFootprint').innerText = monthlyCarbonFootprint;
+
+        const averageExpense = 137000;
+        const comparison = monthlyExpense - averageExpense;
+        document.getElementById('expenseComparison').innerText = comparison > 0 ? `+₩${comparison}` : `-₩${Math.abs(comparison)}`;
+    }
+
+    function calculateActivityFootprint() {
+        const activity = document.getElementById('activity').value;
+        const time = parseFloat(document.getElementById('activityTime').value) || 0;
+        let carbonFootprint = 0;
+
+        switch (activity) {
+            case 'email':
+                carbonFootprint = 4 * time;
+                break;
+            case 'call':
+                carbonFootprint = 3.6 * time;
+                break;
+            case 'data':
+                carbonFootprint = 3.6 * time;
+                break;
+            case 'instagram':
+                carbonFootprint = 1.05 * time;
+                break;
+            case 'facebook':
+                carbonFootprint = 0.79 * time;
+                break;
+            case 'youtube':
+                carbonFootprint = 0.46 * time;
+                break;
+        }
+
+        document.getElementById('activityCarbonFootprint').innerText = carbonFootprint.toFixed(2);
     }
 </script>
 
