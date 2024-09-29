@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>인자탐 용돈 기입장><캬</title>
+    <title>인자탐 용돈 기입장</title>
 
     <!-- Google Font: Jeju Myeongjo -->
     <link href="https://fonts.googleapis.com/css2?family=Jeju+Myeongjo&display=swap" rel="stylesheet">
@@ -82,7 +82,7 @@
             border-radius: 4px;
         }
         .history .allowance {
-            color: #4169e1   ;
+            color: #4169e1;
         }
         .history .expense {
             color: cadetblue;
@@ -164,19 +164,136 @@
         <canvas id="myChart"></canvas>
     </div>
 
+    <!-- 탄소 발자국 계산기 -->
     <div class="form-box">
         <h2>탄소 발자국 계산기</h2>
-        <select id="activity">
-            <option value="email">이메일 1통 (4g CO2)</option>
-            <option value="call">전화 1분 (3.6g CO2)</option>
-            <option value="data">데이터 1MB 전송 (3.6g CO2)</option>
-            <option value="instagram">인스타그램 1분 (1.05g CO2)</option>
-            <option value="facebook">페이스북 1분 (0.79g CO2)</option>
-            <option value="youtube">유튜브 1분 (0.46g CO2)</option>
-        </select>
-        <input type="number" id="activityTime" placeholder="시간 (분 또는 MB)">
-        <button onclick="calculateActivityFootprint()">탄소 발자국 계산</button>
-        <p>탄소 발자국: <span id="activityCarbonFootprint">0</span> g CO2</p>
+
+        <!-- 기존 활동 추가 (유튜브, 인스타, 데이터 등) -->
+        <label>
+            <input type="checkbox" id="youtubeCheckbox">
+            유튜브 1분 (0.46g CO2)
+            <input type="number" id="youtubeTime" placeholder="시간 (분)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="instagramCheckbox">
+            인스타그램 1분 (1.05g CO2)
+            <input type="number" id="instagramTime" placeholder="시간 (분)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="callCheckbox">
+            전화 1분 (3.6g CO2)
+            <input type="number" id="callTime" placeholder="시간 (분)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="emailCheckbox">
+            이메일 1통 (4g CO2)
+            <input type="number" id="emailTime" placeholder="횟수 (통)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="dataCheckbox">
+            데이터 1MB 전송 (3.6g CO2)
+            <input type="number" id="dataTime" placeholder="데이터 (MB)">
+        </label><br>
+
+        <!-- 교통 수단 추가 -->
+        <label>
+            <input type="checkbox" id="smallCarCheckbox">
+            소형 자동차 1km (135g CO2)
+            <input type="number" id="smallCarDistance" placeholder="거리 (km)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="largeCarCheckbox">
+            대형 자동차 1km (200g CO2)
+            <input type="number" id="largeCarDistance" placeholder="거리 (km)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="electricCarCheckbox">
+            전기 자동차 1km (50g CO2)
+            <input type="number" id="electricCarDistance" placeholder="거리 (km)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="busCheckbox">
+            버스 1km (70g CO2)
+            <input type="number" id="busDistance" placeholder="거리 (km)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="subwayCheckbox">
+            지하철 1km (30g CO2)
+            <input type="number" id="subwayDistance" placeholder="거리 (km)">
+        </label><br>
+
+        <!-- 식품 추가 -->
+        <label>
+            <input type="checkbox" id="beefCheckbox">
+            소고기 1kg (99.48kg CO2)
+            <input type="number" id="beefWeight" placeholder="무게 (kg)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="porkCheckbox">
+            돼지고기 1kg (12.31kg CO2)
+            <input type="number" id="porkWeight" placeholder="무게 (kg)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="chickenCheckbox">
+            닭고기 1kg (9.87kg CO2)
+            <input type="number" id="chickenWeight" placeholder="무게 (kg)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="appleCheckbox">
+            사과 1kg (0.43kg CO2)
+            <input type="number" id="appleWeight" placeholder="무게 (kg)">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="bananaCheckbox">
+            바나나 1kg (0.86kg CO2)
+            <input type="number" id="bananaWeight" placeholder="무게 (kg)">
+        </label><br>
+
+        <!-- 1인분당 음식 추가 -->
+        <label>
+            <input type="checkbox" id="hamburgerCheckbox">
+            햄버거 1인분 (18kg CO2)
+            <input type="number" id="hamburgerServing" placeholder="인분">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="steakCheckbox">
+            스테이크 1인분 (33~99kg CO2)
+            <input type="number" id="steakServing" placeholder="인분">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="pizzaCheckbox">
+            피자 1인분 (13kg CO2)
+            <input type="number" id="pizzaServing" placeholder="인분">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="ramenCheckbox">
+            라멘 1인분 (10kg CO2)
+            <input type="number" id="ramenServing" placeholder="인분">
+        </label><br>
+
+        <label>
+            <input type="checkbox" id="colaCheckbox">
+            콜라 1L (0.5kg CO2)
+            <input type="number" id="colaServing" placeholder="L">
+        </label><br>
+
+        <button onclick="calculateTotalCarbonFootprint()">총 탄소 발자국 계산</button>
+        <p>총 탄소 발자국: <span id="totalActivityCarbonFootprint">0</span> g CO2</p>
     </div>
 
 </div>
@@ -315,7 +432,7 @@
                             fill: false
                         },
                         {
-                            label: '탄소 발자국 (kg CO2)',
+                            label: '탄소 발자국 (g CO2)',
                             data: carbonFootprints,
                             borderColor: 'lightsteelblue',
                             fill: false
@@ -359,33 +476,99 @@
         document.getElementById('expenseComparison').innerText = comparison > 0 ? `+₩${comparison}` : `-₩${Math.abs(comparison)}`;
     }
 
-    function calculateActivityFootprint() {
-        const activity = document.getElementById('activity').value;
-        const time = parseFloat(document.getElementById('activityTime').value) || 0;
-        let carbonFootprint = 0;
+    function calculateTotalCarbonFootprint() {
+        let totalCarbonFootprint = 0;
 
-        switch (activity) {
-            case 'email':
-                carbonFootprint = 4 * time;
-                break;
-            case 'call':
-                carbonFootprint = 3.6 * time;
-                break;
-            case 'data':
-                carbonFootprint = 3.6 * time;
-                break;
-            case 'instagram':
-                carbonFootprint = 1.05 * time;
-                break;
-            case 'facebook':
-                carbonFootprint = 0.79 * time;
-                break;
-            case 'youtube':
-                carbonFootprint = 0.46 * time;
-                break;
+        // 유튜브, 인스타, 이메일 등 계산
+        if (document.getElementById('youtubeCheckbox').checked) {
+            const youtubeTime = parseFloat(document.getElementById('youtubeTime').value) || 0;
+            totalCarbonFootprint += youtubeTime * 0.46;
+        }
+        if (document.getElementById('instagramCheckbox').checked) {
+            const instagramTime = parseFloat(document.getElementById('instagramTime').value) || 0;
+            totalCarbonFootprint += instagramTime * 1.05;
+        }
+        if (document.getElementById('callCheckbox').checked) {
+            const callTime = parseFloat(document.getElementById('callTime').value) || 0;
+            totalCarbonFootprint += callTime * 3.6;
+        }
+        if (document.getElementById('emailCheckbox').checked) {
+            const emailTime = parseFloat(document.getElementById('emailTime').value) || 0;
+            totalCarbonFootprint += emailTime * 4;
+        }
+        if (document.getElementById('dataCheckbox').checked) {
+            const dataTime = parseFloat(document.getElementById('dataTime').value) || 0;
+            totalCarbonFootprint += dataTime * 3.6;
         }
 
-        document.getElementById('activityCarbonFootprint').innerText = carbonFootprint.toFixed(2);
+        // 교통 수단 계산
+        if (document.getElementById('smallCarCheckbox').checked) {
+            const smallCarDistance = parseFloat(document.getElementById('smallCarDistance').value) || 0;
+            totalCarbonFootprint += smallCarDistance * 135;
+        }
+        if (document.getElementById('largeCarCheckbox').checked) {
+            const largeCarDistance = parseFloat(document.getElementById('largeCarDistance').value) || 0;
+            totalCarbonFootprint += largeCarDistance * 200;
+        }
+        if (document.getElementById('electricCarCheckbox').checked) {
+            const electricCarDistance = parseFloat(document.getElementById('electricCarDistance').value) || 0;
+            totalCarbonFootprint += electricCarDistance * 50;
+        }
+        if (document.getElementById('busCheckbox').checked) {
+            const busDistance = parseFloat(document.getElementById('busDistance').value) || 0;
+            totalCarbonFootprint += busDistance * 70;
+        }
+        if (document.getElementById('subwayCheckbox').checked) {
+            const subwayDistance = parseFloat(document.getElementById('subwayDistance').value) || 0;
+            totalCarbonFootprint += subwayDistance * 30;
+        }
+
+        // 음식 계산
+        if (document.getElementById('beefCheckbox').checked) {
+            const beefWeight = parseFloat(document.getElementById('beefWeight').value) || 0;
+            totalCarbonFootprint += beefWeight * 99480;
+        }
+        if (document.getElementById('porkCheckbox').checked) {
+            const porkWeight = parseFloat(document.getElementById('porkWeight').value) || 0;
+            totalCarbonFootprint += porkWeight * 12310;
+        }
+        if (document.getElementById('chickenCheckbox').checked) {
+            const chickenWeight = parseFloat(document.getElementById('chickenWeight').value) || 0;
+            totalCarbonFootprint += chickenWeight * 9870;
+        }
+        if (document.getElementById('appleCheckbox').checked) {
+            const appleWeight = parseFloat(document.getElementById('appleWeight').value) || 0;
+            totalCarbonFootprint += appleWeight * 430;
+        }
+        if (document.getElementById('bananaCheckbox').checked) {
+            const bananaWeight = parseFloat(document.getElementById('bananaWeight').value) || 0;
+            totalCarbonFootprint += bananaWeight * 860;
+        }
+
+        // 1인분당 음식 계산
+        if (document.getElementById('hamburgerCheckbox').checked) {
+            const hamburgerServing = parseFloat(document.getElementById('hamburgerServing').value) || 0;
+            totalCarbonFootprint += hamburgerServing * 18000;
+        }
+        if (document.getElementById('steakCheckbox').checked) {
+            const steakServing = parseFloat(document.getElementById('steakServing').value) || 0;
+            totalCarbonFootprint += steakServing * 33000; // 최소값으로 계산
+        }
+        if (document.getElementById('pizzaCheckbox').checked) {
+            const pizzaServing = parseFloat(document.getElementById('pizzaServing').value) || 0;
+            totalCarbonFootprint += pizzaServing * 13000;
+        }
+        if (document.getElementById('ramenCheckbox').checked) {
+            const ramenServing = parseFloat(document.getElementById('ramenServing').value) || 0;
+            totalCarbonFootprint += ramenServing * 10000;
+        }
+        if (document.getElementById('colaCheckbox').checked) {
+            const colaServing = parseFloat(document.getElementById('colaServing').value) || 0;
+            totalCarbonFootprint += colaServing * 500;
+        }
+
+        // 총 탄소 발자국 표시
+        document.getElementById('totalActivityCarbonFootprint').innerText = totalCarbonFootprint.toFixed(2);
     }
 </script>
 
