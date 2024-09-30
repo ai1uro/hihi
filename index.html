@@ -94,6 +94,10 @@
         canvas {
             max-width: 100%;
         }
+        #treeImages img {
+            width: 50px;
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
@@ -471,6 +475,8 @@
 
         <button onclick="calculateTotalCarbonFootprint()">총 탄소 발자국 계산</button>
         <p>총 탄소 발자국: <span id="totalActivityCarbonFootprint">0</span> g CO2</p>
+        <p>필요한 소나무 개수: <span id="treeCount">0</span> 그루</p>
+        <div id="treeImages"></div>
     </div>
 
 </div>
@@ -861,7 +867,21 @@ if (document.getElementById('makgeolliCheckbox').checked) {
 
         // 총 탄소 발자국 표시
         document.getElementById('totalActivityCarbonFootprint').innerText = totalCarbonFootprint.toFixed(2);
+                // 필요한 소나무 개수 계산
+                const treeCount = Math.ceil(totalCarbonFootprint / 6600); // 6.6kg = 6600g CO2를 흡수하는 소나무
+                document.getElementById('totalActivityCarbonFootprint').innerText = totalCarbonFootprint.toFixed(2);
+                document.getElementById('treeCount').innerText = treeCount;
+        
+                // 소나무 이미지를 반복해서 표시
+                const treeImagesDiv = document.getElementById('treeImages');
+                treeImagesDiv.innerHTML = ''; // 기존 이미지 초기화
+                for (let i = 0; i < treeCount; i++) {
+                    const img = document.createElement('img');
+                    img.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpAlJxyXltvSnd6YtM_M-QuTjYNOgKe1EGtopf67lPrkJ1CZnaZes3MIijs3s3yNu0eGY&usqp=CAU'; // 소나무 이미지 URL
+                    img.alt = '소나무';
+                    treeImagesDiv.appendChild(img);
     }
+}
 </script>
 
 </body>
