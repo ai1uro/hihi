@@ -98,6 +98,11 @@
             width: 50px;
             margin: 5px;
         }
+        .message {
+            font-size: 1.2em;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -477,6 +482,7 @@
         <p>총 탄소 발자국: <span id="totalActivityCarbonFootprint">0</span> g CO2</p>
         <p>필요한 소나무 개수: <span id="treeCount">0</span> 그루</p>
         <div id="treeImages"></div>
+        <div class="message" id="footprintMessage"></div>
     </div>
 
 </div>
@@ -880,6 +886,20 @@ if (document.getElementById('makgeolliCheckbox').checked) {
                     img.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpAlJxyXltvSnd6YtM_M-QuTjYNOgKe1EGtopf67lPrkJ1CZnaZes3MIijs3s3yNu0eGY&usqp=CAU'; // 소나무 이미지 URL
                     img.alt = '소나무';
                     treeImagesDiv.appendChild(img);
+                }
+        // 탄소 배출량에 따른 메시지 출력
+        const footprintMessageElem = document.getElementById('footprintMessage');
+        const carbonInKg = totalCarbonFootprint / 1000; // g에서 kg으로 변환
+
+        if (carbonInKg <= 6.3) {
+            footprintMessageElem.innerText = '잘 하고 있어요! 앞으로도 노력해요!';
+            footprintMessageElem.style.color = 'green';
+        } else if (carbonInKg > 6.3 && carbonInKg <= 32.7) {
+            footprintMessageElem.innerText = '조금 더 노력해보아요!';
+            footprintMessageElem.style.color = 'orange';
+        } else {
+            footprintMessageElem.innerText = '지구가 위험해요!';
+            footprintMessageElem.style.color = 'red';
     }
 }
 </script>
